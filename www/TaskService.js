@@ -3,13 +3,12 @@
   
   function TaskService($http, API_URL) {
     var self = this;
-    var apiUrl = 'https://shrouded-oasis-87423.herokuapp.com';
     
     self.getItems = function(successCallback) {
       var items = [];
+      modal.show();
       $http.get(API_URL + '/tasks.json')
       .then(function (success) {
-        // console.log(success);
         items = success.data;        
         items.forEach(function(item){
           item.isNew = false;
@@ -18,8 +17,10 @@
         if (typeof successCallback === 'function') {
           successCallback(items);
         }
+        
+        modal.hide();
       }, function (error) {
-        console.log(error);
+        modal.hide();
       });      
     };
     
@@ -32,30 +33,51 @@
     };
     
     self.saveItems = function(items) {
-      if (!Array.isArray(items)) return;
-  
+      if (!Array.isArray(items)) {
+        return;
+      }
+      
       items.forEach(function(item) {
         saveItem(item);
       });
-    }
+    };
     
-    self.deleteItem = function (item) {
-      $http.delete(apiUrl + '/tasks/' + encodeURIComponent(item.id) + '.json')
+    self.deleteItems = function(items) {
+      if (!Array.isArray(items)) {
+        return;
+      }
+      
+      items.forEach(function(item) {
+        if (item.done) {
+          deleteItem(item);
+        }
+      })
+      
+      return items.filter(function(item) {
+        return !item.done;
+      });
+    };
+    
+    function deleteItem (item) {
+      modal.show();
+      $http.delete(API_URL + '/tasks/' + encodeURIComponent(item.id) + '.json')
       .then(function (success) {
-        console.log(success);
+        modal.hide();
       }, function(error) {
-        console.log(error);
+        modal.hide();
       });
     }
         
     function saveItem(item) {
+      modal.show();
       save(item)
       .then(function (success) {
         item = success.data;
         item.isNew = false;
+        modal.hide();
       }, function (error) {
-        console.log(error);
         // todo: show error
+        modal.hide();
       });      
     }
         
@@ -69,12 +91,12 @@
   
     function create(item) {
       item.isNew = false;
-      return $http.post(apiUrl + '/tasks.json', formatItemForSave(item));
+      return $http.post(API_URL + '/tasks.json', formatItemForSave(item));
     }
     
     function update(item) {
       return $http.patch(
-        apiUrl + '/tasks/' + encodeURIComponent(item.id) + '.json',
+        API_URL + '/tasks/' + encodeURIComponent(item.id) + '.json',
         formatItemForSave(item)
       );
     }

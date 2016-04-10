@@ -22,17 +22,7 @@
     }
 
     self.clearCompleted = function() {
-      var itemsToDelete = self.items.filter(function(item) {
-        return item.done;
-      });
-      
-      self.items = self.items.filter(function(item) {
-        return !item.done;
-      });
-      
-      itemsToDelete.forEach(function(item) {
-        TaskService.deleteItem(item);
-      });
+      self.items = TaskService.deleteItems(self.items);
     };
     
     self.save = function() {
